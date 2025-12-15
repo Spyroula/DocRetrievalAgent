@@ -163,7 +163,6 @@ class CorpusSetup:
             with tempfile.TemporaryDirectory() as tmpdir:
                 for url in url_list:
                     filename = url.split("/")[-1] or "downloaded.pdf"
-                    # Sanitize filename to prevent path traversal attacks
                     filename = Path(filename).name
                     dest = os.path.join(tmpdir, filename)
                     ok = self.downloader.download_file(url, dest)
