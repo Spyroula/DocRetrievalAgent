@@ -1,0 +1,43 @@
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+.env
+.venv
+venv/
+env/
+*.log
+.ipynb_checkpoints/
+.DS_Store
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+*.swp
+*.swo
+*~
+.idea/
+.vscode/settings.json
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfvars
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/.tfvars
+
+# Docker
+*.docker
+
+# Models (large files)
+models/
+*.bin
+*.pt
+*.pth
+
+# Data (optional - for security)
+data/*.csv
+data/*.json
+!data/sample_documents.py
