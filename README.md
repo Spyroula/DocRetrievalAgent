@@ -43,8 +43,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### Setup
 
-1. **Clone and navigate to the project:**
+1. **Clone the repository:**
    ```bash
+   git clone https://github.com/Spyroula/DocRetrievalAgent.git
    cd DocRetrievalAgent
    ```
 
@@ -61,8 +62,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    # Edit .env with your GCP project details
    # Required:
    # - GOOGLE_CLOUD_PROJECT=your-project-id
-   # - GOOGLE_CLOUD_LOCATION=us-central1
-   # - STAGING_BUCKET=your-staging-bucket-name
+   # - GOOGLE_CLOUD_LOCATION=us-central1 (default: us-central1)
+   # - STAGING_BUCKET=gs://your-staging-bucket-name
    ```
 
 4. **Authenticate with Google Cloud:**
@@ -70,24 +71,24 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    gcloud auth application-default login
    ```
    
-   Or set a service account key:
+   Or use a service account key:
    ```bash
    export SERVICE_ACCOUNT_JSON_PATH=/path/to/service-account-key.json
    ```
 
 5. **Prepare RAG corpus and upload documents:**
    ```bash
-   # Dry-run to validate configuration
+   # Validate configuration (dry-run)
    uv run python rag/shared_libraries/prepare_corpus_and_data.py --dry-run
    
-   # Create corpus and upload sample documents
+   # Create corpus and upload documents from a directory
    uv run python rag/shared_libraries/prepare_corpus_and_data.py --sample-dir ./sample_docs
    ```
    
-   Corpus script options:
+   **Corpus script options:**
    - `--dry-run`: Validate setup without uploading
    - `--sample-dir <path>`: Upload all PDFs/TXT/MD files from a directory
-   - `--urls-file <path>`: Download and upload documents from URLs (newline-separated)
+   - `--urls-file <path>`: Download and upload documents from URLs (newline-separated file)
    - `--display-name <name>`: Custom corpus name (default: DocumentCorpus)
    - `--no-upload`: Create corpus but skip document uploads
 
