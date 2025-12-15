@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["rag"]
+
+[project]
+name = "doc-retrieval-agent"
+version = "0.1"
+description = "A Retrieval-Augmented Generation agent using Vertex AI RAG Engine"
+requires-python = ">=3.10"
+dependencies = [
+    "google-cloud-aiplatform[adk,agent-engines]>=1.108.0",
+    "google-adk>=1.10.0",
+    "google-auth>=2.25.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
+    "tqdm>=4.66.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+]
