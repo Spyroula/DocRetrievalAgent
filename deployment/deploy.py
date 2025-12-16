@@ -72,10 +72,9 @@ class AgentDeploymentManager:
         try:
             logger.info("Deploying agent: %s", display_name)
 
-            app = AdkApp(agent=agent, enable_tracing=True)
-
+            # Deploy agent directly (Agent Engine will handle wrapping)
             remote_app = agent_engines.create(
-                app,
+                agent,
                 requirements=[
                     "google-cloud-aiplatform[adk,agent-engines]>=1.108.0",
                     "google-adk>=1.10.0",

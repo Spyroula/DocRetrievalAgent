@@ -10,6 +10,9 @@ This agent leverages Vertex AI's RAG capabilities to retrieve relevant documents
 - **Semantic Search**: Retrieve relevant passages using embeddings
 - **Citation Tracking**: Provide source references for all retrieved information
 - **Cloud-Native Architecture**: Deploy to Vertex AI Agent Engine for scalability
+- **Local Testing**: Run without GCP credentials using built-in stubs
+
+**Status Note**: Corpus creation and agent functionality are fully working. Agent Engine deployment is experiencing API compatibility issues with the latest ADK version (documented in Deployment section).
 
 ## Architecture
 
@@ -62,7 +65,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    # Edit .env with your GCP project details
    # Required:
    # - GOOGLE_CLOUD_PROJECT=your-project-id
-   # - GOOGLE_CLOUD_LOCATION=us-central1 (default: us-central1)
+   # - GOOGLE_CLOUD_LOCATION=us-west1 (recommended: us-west1, us-east4, or europe-west1)
+   #   Note: us-central1 may be restricted for new projects
    # - STAGING_BUCKET=gs://your-staging-bucket-name
    ```
 
@@ -77,13 +81,32 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
 5. **Prepare RAG corpus and upload documents:**
+   
+   The repository includes a sample document in `test_docs/` directory. You can use it to test the agent:
+   
    ```bash
    # Validate configuration (dry-run)
    uv run python rag/shared_libraries/prepare_corpus_and_data.py --dry-run
    
-   # Create corpus and upload documents from a directory
-   uv run python rag/shared_libraries/prepare_corpus_and_data.py --sample-dir ./sample_docs
+   # Create corpus and upload the sample document from test_docs/
+   uv run python rag/shared_libraries/prepare_corpus_and_data.py \
+     --sample-dir ./test_docs \
+     --display-name "My Document Corpus"
    ```
+   
+   To add your own documents:
+   ```bash
+   # Add your PDF/TXT/MD files to test_docs/
+   cp /path/to/your/document.pdf test_docs/
+   
+   # Then run the corpus creation command again
+   ```
+   
+   This will:
+   - Create a new RAG corpus in Vertex AI
+   - Upload all PDF/TXT/MD files from `test_docs/`
+   - Generate embeddings for semantic search
+   - Save the corpus ID to `.env` as `RAG_CORPUS`
    
    **Corpus script options:**
    - `--dry-run`: Validate setup without uploading
@@ -121,15 +144,27 @@ adk web
 
 ### Deploy to Vertex AI Agent Engine
 
+⚠️ **Known Issue**: Agent Engine deployment is currently experiencing API compatibility issues with the latest ADK version. The corpus creation and agent instantiation work correctly, but the deployment to Agent Engine encounters an API mismatch error ("Either app or both app_name and agent must be provided").
+
+**Current Status:**
+- ✅ Corpus creation and document indexing: Working
+- ✅ Local agent instantiation and testing: Working
+- ⚠️ Agent Engine deployment: API compatibility issue
+
+**Deployment command** (may require ADK version update):
 ```bash
 # Deploy the agent
-uv run python deployment/deploy.py
+uv run python deployment/deploy.py deploy
 
 # This will:
 # - Package the agent with dependencies
-# - Deploy to Vertex AI Agent Engine
-# - Update .env with AGENT_ENGINE_ID
+# - Attempt to deploy to Vertex AI Agent Engine
+# - Update .env with AGENT_ENGINE_ID (if successful)
 ```
+
+**Alternative Deployment Options:**
+1. **Wait for ADK API update** - Google is actively updating the Agent Engine APIs
+2. **Pin to older ADK version** - Specify a compatible version in `pyproject.toml` (Note: This may introduce other compatibility issues or missing features)
 
 ### Test Deployed Agent
 
@@ -145,22 +180,49 @@ This will:
 ### Delete Deployed Agent
 
 ```bash
-uv run python deployment/deploy.py --delete --resource_id <YOUR_AGENT_ENGINE_ID>
+uv run python deployment/deploy.py delete
 ```
 
 ## Corpus Preparation
 
 ### Automatic Setup (Recommended)
 
+The repository includes a sample document in the `test_docs/` directory for quick testing.
+
+**Create corpus with the included sample document:**
 ```bash
 # Validate configuration (dry-run)
 uv run python rag/shared_libraries/prepare_corpus_and_data.py --dry-run
 
-# Create corpus and upload documents from a directory
-uv run python rag/shared_libraries/prepare_corpus_and_data.py --sample-dir ./sample_docs
+# Create corpus and upload the sample document
+uv run python rag/shared_libraries/prepare_corpus_and_data.py \
+  --sample-dir ./test_docs \
+  --display-name "My Document Corpus"
+```
 
-# Upload from URLs (newline-separated file)
+**To add your own documents:**
+```bash
+# Add your PDF, TXT, or MD files to test_docs/
+cp /path/to/your/documents/*.pdf test_docs/
+
+# Re-run the corpus creation (will upload all files in test_docs/)
+uv run python rag/shared_libraries/prepare_corpus_and_data.py \
+  --sample-dir ./test_docs \
+  --display-name "My Document Corpus"
+```
+
+**Alternative: Upload from URLs**
+```bash
 uv run python rag/shared_libraries/prepare_corpus_and_data.py --urls-file document_urls.txt
+```
+
+**Expected output:**
+```
+Corpus created: projects/.../ragCorpora/...
+Uploading: test_docs/document1.pdf
+Uploaded: test_docs/document1.pdf
+Corpus setup completed successfully
+RAG_CORPUS saved to .env
 ```
 
 **CLI Options:**
@@ -398,8 +460,33 @@ gcloud run deploy doc-retrieval-agent \
 
 ## Troubleshooting
 
+### Error: "Either app or both app_name and agent must be provided" (Agent Engine Deployment)
+**Issue**: Agent Engine API compatibility issue with current ADK version.
+
+**Context**: 
+- Corpus creation works perfectly
+- Agent instantiation succeeds locally
+- Deployment to Agent Engine encounters internal API mismatch
+
+**Solutions**:
+1. **Short-term**: Use Cloud Run deployment (see Docker section)
+2. **Monitor updates**: Check ADK release notes for API fixes
+3. **Pin versions**: Specify compatible ADK version in dependencies
+4. **Alternative**: Enable Cloud Resource Manager API if not already enabled:
+   ```bash
+   gcloud services enable cloudresourcemanager.googleapis.com
+   ```
+
 ### Error: "RAG_CORPUS environment variable not set"
 **Solution**: Run `prepare_corpus_and_data.py` first to create and register your corpus.
+
+### Error: "For new projects, RAG Engine in us-central1 is restricted"
+**Solution**: Some regions have capacity limits for new projects. Try a different region:
+```bash
+# In .env, change:
+GOOGLE_CLOUD_LOCATION=us-west1
+# or us-east4, europe-west1, asia-northeast1
+```
 
 ### Error: "ResourceExhausted" during document upload
 **Solution**: You've hit the embedding model quota. Request a quota increase:
