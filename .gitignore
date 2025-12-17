@@ -8,6 +8,8 @@ build/
 venv/
 env/
 *.log
+streamlit.log
+adk_web.log
 .ipynb_checkpoints/
 .DS_Store
 *.egg
@@ -19,6 +21,10 @@ htmlcov/
 *~
 .idea/
 .vscode/settings.json
+
+# ADK
+.adk/
+agents/
 
 # Terraform
 terraform/.terraform/

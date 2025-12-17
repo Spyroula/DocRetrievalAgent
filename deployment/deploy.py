@@ -72,18 +72,24 @@ class AgentDeploymentManager:
         try:
             logger.info("Deploying agent: %s", display_name)
 
-            # Deploy agent directly (Agent Engine will handle wrapping)
+            # Explicitly specify requirements to ensure all dependencies are included
+            # The automatic detection misses some critical packages like vertexai
+            requirements = [
+                "google-cloud-aiplatform[adk,agent-engines]>=1.108.0",
+                "google-adk>=1.10.0",
+                "google-genai>=0.1.0",
+                "google-auth>=2.25.0",
+                "google-cloud-storage>=2.10.0",
+                "python-dotenv>=1.0.0",
+                "pydantic>=2.0.0",
+                "cloudpickle>=3.0.0",
+            ]
+
+            # Deploy agent using agent_engines.create
             remote_app = agent_engines.create(
                 agent,
-                requirements=[
-                    "google-cloud-aiplatform[adk,agent-engines]>=1.108.0",
-                    "google-adk>=1.10.0",
-                    "google-auth>=2.25.0",
-                    "python-dotenv>=1.0.0",
-                    "requests>=2.31.0",
-                ],
-                extra_packages=["./rag"],
                 display_name=display_name,
+                requirements=requirements,
             )
 
             agent_engine_id = remote_app.resource_name

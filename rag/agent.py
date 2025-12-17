@@ -124,28 +124,6 @@ def build_retrieval_agent(
     return agent
 
 
-# Lazy initialization: root_agent is created on first access via get_root_agent()
-_root_agent_cache = None
-
-
-def get_root_agent() -> Agent:
-    """
-    Get the module-level root agent instance, creating it lazily.
-    
-    This defers GCP initialization until the agent is actually needed.
-    """
-    global _root_agent_cache
-    if _root_agent_cache is None:
-        _root_agent_cache = build_retrieval_agent()
-    return _root_agent_cache
-
-
-# For backwards compatibility, provide root_agent as a lazy property reference
-root_agent = None  # Will be set on first access
-
-
-def __getattr__(name):
-    """Handle lazy loading of root_agent module attribute."""
-    if name == "root_agent":
-        return get_root_agent()
-    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+# Create root_agent for ADK web interface
+# This is the default agent instance that adk web will use
+root_agent = build_retrieval_agent()

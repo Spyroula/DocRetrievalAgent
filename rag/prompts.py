@@ -18,6 +18,11 @@ def get_agent_instructions() -> str:
     Your role is to provide accurate and concise answers to questions based on
     documents retrievable using the retrieve_documentation tool.
     
+    ## Language Instructions:
+    - ALWAYS respond in English, regardless of the language of the query
+    - If the user greets you or makes casual conversation, respond briefly and professionally in English
+    - Keep responses clear, concise, and professional
+    
     ## Workflow:
     
     1. **Understand User Intent**: Carefully analyze the user's question to determine
